@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Bank List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f6f9fc;
+            color: #2d3748;
+        }
+
+        /* Modern Midnight Gradient Admin Header */
+        .admin-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: white;
+            padding: 60px 0 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        /* Sleek Container Workspace */
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.04);
+            border: 1px solid #e2e8f0;
+            padding: 35px;
+            margin-top: -50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .panel-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .table thead {
+            background-color: #f8fafc;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            padding: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .table td {
+            padding: 16px;
+            color: #334155;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .bank-emphasized {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .badge-branch {
+            background-color: #eff6ff;
+            color: #2563eb;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        /* Custom Modern Pagination Styling */
+        .pagination .page-item .page-link {
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0 3px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .pagination .page-item .page-link:hover:not(.active) {
+            background-color: #f8fafc;
+            color: #1e293b;
+            border-color: #cbd5e1;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            background-color: #f1f5f9;
+            border-color: #e2e8f0;
+            color: #94a3b8;
+        }
+
+        /* Form Controls */
+        .btn-action {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-light-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-light-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-light-danger {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .btn-light-danger:hover {
+            background: #fee2e2;
+        }
+
+        .btn-add-bank {
+            background: #2563eb;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+
+        .btn-add-bank:hover {
+            background: #1d4ed8;
+        }
+
+        .modal-content {
+            border-radius: 24px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            border-bottom: none;
+            padding: 24px 32px;
+        }
+
+        .modal-body {
+            padding: 32px;
+        }
+
+        .form-control-modern {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+
+        .form-control-modern:focus {
+            border-color: #bfdbfe;
+            box-shadow: 0 0 0 4px rgba(37, 99, 213, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <header class="admin-header">
+        <div class="container text-center">
+            <span class="badge bg-white bg-opacity-10 text-white px-3 py-2 rounded-pill mb-2 text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.75rem;">Administrative Console</span>
+            <h1 class="fw-bold mb-1"><i class="bi bi-folder-check text-info me-2"></i> Bank Management</h1>
+            <p class="opacity-75 lead mb-0 small">Maintain and update the official operational list of partner institutions</p>
+        </div>
+    </header>
+
+    <div class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="table-container">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h4 class="panel-title mb-1">Registered Institutions</h4>
+                            <p class="text-muted small mb-0">Manage details, locations, operational address routes, and links.</p>
+                        </div>
+                        <button class="btn btn-primary btn-add-bank d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#bankModal">
+                            <i class="bi bi-plus-circle-fill"></i> Add New Bank
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Bank Id</th>
+                                    <th>Bank Name</th>
+                                    <th>Branch Code</th>
+                                    <th>Location / Hub</th>
+                                    <th>Contact Info</th>
+                                    <th style="width: 30%;">Full Address</th>
+                                    <th class="text-end" style="width: 120px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bankTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <div class="text-muted small fw-medium" id="paginationInfo">
+                            Showing 0 to 0 of 0 entries
+                        </div>
+                        <nav aria-label="Table navigation Layout">
+                            <ul class="pagination mb-0" id="paginationControls">
+                                </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="bankModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form id="bankForm">
+                    <div class="modal-header text-white">
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2"><i class="bi bi-plus-square"></i> Enter Asset Details</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Bank Id</label>
+                                <input type="number" id="inputId" class="form-control form-control-modern" placeholder="e.g. 101" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Bank Entity Name</label>
+                                <input type="text" id="inputName" class="form-control form-control-modern" placeholder="e.g. Urban Finance" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Unique Branch Code</label>
+                                <input type="text" id="inputCode" class="form-control form-control-modern" placeholder="e.g. UFC-4432" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">Branch Core Location / City</label>
+                                <input type="text" id="inputLocation" class="form-control form-control-modern" placeholder="e.g. Chennai" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">Operational Contact Line</label>
+                                <input type="text" id="inputPhone" class="form-control form-control-modern" placeholder="e.g. +91 44 2233 4455">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small text-secondary">Complete Verified Operating Address</label>
+                                <input type="text" id="inputAddress" class="form-control form-control-modern" placeholder="Street, Structural Unit, Area..." required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer gap-2">
+                        <button type="button" class="btn btn-light fw-bold px-4 py-2.5" style="border-radius: 12px;" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary fw-bold px-4 py-2.5" style="border-radius: 12px; background:#2563eb; border:none;">Commit Asset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Memory Array to serve data logic natively
+        let bankData = [
+            { id: 101, name: "Global Trust Bank", code: "GTB-9921", location: "Mumbai", phone: "+91 9876543210", address: "Nariman Point, Mumbai, MH" },
+            { id: 102, name: "Urban Finance Co.", code: "UFC-4432", location: "Chennai", phone: "+91 44 2233 4455", address: "Anna Salai, Teynampet, Chennai" }
+        ];
+
+        // Seed 12 more mock banks to test pagination immediately (>10 records)
+        // for (let i = 1; i <= 12; i++) {
+        //     bankData.push({
+        //         id: Date.now() + i,
+        //         name: `Apex Wealth Bank ${i}`,
+        //         code: `AWB-00${i}`,
+        //         location: i % 2 === 0 ? "Delhi" : "Bangalore",
+        //         phone: `+91 88000 1100${i}`,
+        //         address: `Suite ${10 * i}, Business District Center Hub`
+        //     });
+        // }
+
+        // Pagination State Configuration
+        let currentPage = 1;
+        const recordsPerPage = 10; // Change this value to adjust size limit
+
+        const bankForm = document.getElementById('bankForm');
+        const bankTableBody = document.getElementById('bankTableBody');
+        const bankModal = new bootstrap.Modal(document.getElementById('bankModal'));
+
+        // Core Render Engine Matrix
+        function renderTable() {
+            bankTableBody.innerHTML = "";
+            
+            // Calculate indices bounds
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = Math.min(startIndex + recordsPerPage, bankData.length);
+            const paginatedItems = bankData.slice(startIndex, endIndex);
+
+            if (paginatedItems.length === 0 && currentPage > 1) {
+                currentPage--;
+                renderTable();
+                return;
+            }
+
+            // Loop and draw visible segment items
+            paginatedItems.forEach(bank => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${bank.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-bank text-primary fs-5"></i>
+                            <span class="bank-emphasized">${bank.name}</span>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-branch">${bank.code}</span></td>
+                    <td><span class="fw-medium"><i class="bi bi-geo-alt text-muted me-1"></i>${bank.location}</span></td>
+                    <td><span class="text-secondary fw-medium">${bank.phone || 'N/A'}</span></td>
+                    <td><span class="text-muted small">${bank.address}</span></td>
+                    <td class="text-end">
+                        <button class="btn btn-action btn-light-secondary me-1" title="Edit Bank"><i class="bi bi-pencil-fill" style="font-size: 0.85rem;"></i></button>
+                        <button class="btn btn-action btn-light-danger" onclick="deleteBankEntry(${bank.id})" title="Delete Bank"><i class="bi bi-trash3-fill" style="font-size: 0.85rem;"></i></button>
+                    </td>
+                `;
+                bankTableBody.appendChild(tr);
+            });
+
+            updatePaginationControls(startIndex, endIndex);
+        }
+
+        // Generate Bottom Interactive Controls Dynamic Frame
+        function updatePaginationControls(start, end) {
+            const totalPages = Math.ceil(bankData.length / recordsPerPage);
+            const infoText = document.getElementById('paginationInfo');
+            const controlsContainer = document.getElementById('paginationControls');
+
+            // Set lower contextual footer text details info
+            infoText.innerText = bankData.length > 0 
+                ? `Showing ${start + 1} to ${end} of ${bankData.length} entries`
+                : `Showing 0 to 0 of 0 entries`;
+
+            controlsContainer.innerHTML = "";
+
+            if (totalPages <= 1) return; // Hide layout controllers if single page asset block sizing exists
+
+            // Left Previous Pointer Button
+            controlsContainer.innerHTML += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})"><i class="bi bi-chevron-left"></i></a>
+                </li>
+            `;
+
+            // Numeric sequence numbers index drawer block routing map
+            for (let i = 1; i <= totalPages; i++) {
+                controlsContainer.innerHTML += `
+                    <li class="page-item ${currentPage === i ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                    </li>
+                `;
+            }
+
+            // Right Next Pointer Button
+            controlsContainer.innerHTML += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})"><i class="bi bi-chevron-right"></i></a>
+                </li>
+            `;
+        }
+
+        function changePage(pageNumber) {
+            event.preventDefault();
+            currentPage = pageNumber;
+            renderTable();
+        }
+
+        // Form Submit listener tracking array changes
+        bankForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const newBank = {
+                id: Date.now(),
+                name: document.getElementById('inputName').value,
+                code: document.getElementById('inputCode').value,
+                location: document.getElementById('inputLocation').value,
+                phone: document.getElementById('inputPhone').value,
+                address: document.getElementById('inputAddress').value
+            };
+
+            bankData.unshift(newBank); // Push fresh entries directly up to Page 1 view index
+            currentPage = 1;
+
+            renderTable();
+            bankForm.reset();
+            bankModal.hide();
+        });
+
+        // Identity pointer row targeted element object deletion modifier
+        function deleteBankEntry(id) {
+            if (confirm("Are you certain you want to remove this operational bank asset?")) {
+                bankData = bankData.filter(item => item.id !== id);
+                renderTable();
+            }
+        }
+
+        // Bootstrap Frame Initial compilation activation call setup sequence
+        renderTable();
+    </script>
+</body>
+
+</html>
