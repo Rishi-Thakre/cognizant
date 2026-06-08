@@ -1,0 +1,1625 @@
+I am giving you 3 HTML files. 
+
+GIve me 3 separate + 1 Single Shared CSS + 3 Separate JS files for the.
+
+
+
+===================admin-loan-dashboard==============
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Loan Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for Donut and Grouped Bar Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark': '#0d1b2a',
+                        'brand-blue': '#1b263b',
+                        'brand-accent': '#415a77',
+                        'brand-light': '#e0e1dd',
+                        'primary': '#2563eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Custom scrollbar for the table */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Glassmorphism subtle effect for header */
+        .header-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Top Alert Notification System -->
+    <div id="notification-toast" class="fixed top-5 right-5 z-50 transform translate-y-[-150%] transition-transform duration-300 ease-out bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-800 text-sm">
+        <i class="ph-bold ph-info text-blue-400 text-lg" id="notification-icon"></i>
+        <span id="notification-message">Notification message here</span>
+    </div>
+
+    <!-- Header Section (Matching the dark blue aesthetic from images) -->
+    <div class="header-bg pt-8 pb-32 px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col items-center justify-center text-center space-y-4">
+                <span class="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold tracking-widest uppercase backdrop-blur-sm">
+                    Administrative Console
+                </span>
+                <div class="flex items-center gap-3 text-white">
+                    <i class="ph ph-chart-pie-slice text-4xl text-blue-400"></i>
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Loan Reporting Dashboard</h1>
+                </div>
+                <p class="text-blue-100 text-sm md:text-base max-w-2xl">
+                    Monitor portfolio health, application pipelines, and real-time disbursement metrics across all partner institutions.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area (Overlapping the header) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-12 space-y-6">
+        
+        <!-- ================= KPI SCOREBOARD ================= -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- KPI 1: Total Disbursed -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Amount Disbursed</p>
+                        <h2 class="text-3xl font-bold text-gray-900 mt-2" id="kpi-disbursed">₹0.00</h2>
+                    </div>
+                    <div class="p-3 bg-green-50 text-green-600 rounded-xl">
+                        <i class="ph ph-money text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs text-gray-400">
+                    <span>Overall volume approved and cleared across banks</span>
+                </div>
+            </div>
+
+            <!-- KPI 2: Total Outstanding -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Outstanding Balance</p>
+                        <h2 class="text-3xl font-bold text-gray-900 mt-2" id="kpi-outstanding">₹0.00</h2>
+                    </div>
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <i class="ph ph-wallet text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs text-gray-400">
+                    <span>Active balance currently subject to repayments</span>
+                </div>
+            </div>
+
+            <!-- KPI 3: Total Customers -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Active Customers</p>
+                        <h2 class="text-3xl font-bold text-gray-900 mt-2" id="kpi-customers">0</h2>
+                    </div>
+                    <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                        <i class="ph ph-users text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs text-gray-400">
+                    <span>Total validated borrowers holding active records</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CHARTS & MIDDLE SECTION ================= -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Donut Chart: Approval Status Distribution -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 lg:col-span-1 flex flex-col">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-gray-900">Pipeline Status</h3>
+                    <p class="text-sm text-gray-500">Distribution of application states</p>
+                </div>
+                
+                <div class="relative flex-grow flex items-center justify-center min-h-[250px]">
+                    <!-- Absolute centered text for Donut Chart -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                        <span class="text-3xl font-bold text-gray-800" id="chart-total-center">0</span>
+                        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total</span>
+                    </div>
+                    <canvas id="statusDonutChart" width="250" height="250"></canvas>
+                </div>
+                
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-3 text-center">
+                        <div class="text-xl font-bold text-blue-600" id="stat-approved">0</div>
+                        <div class="text-xs font-medium text-gray-500 uppercase">Approved</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3 text-center">
+                        <div class="text-xl font-bold text-orange-500" id="stat-pending">0</div>
+                        <div class="text-xs font-medium text-gray-500 uppercase">Pending</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grouped Bar Chart: Bank-Wise Exposure Breakdown (Replaces Financial Trend) -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
+                <div class="mb-2">
+                    <h3 class="text-lg font-bold text-gray-900">Bank-Wise Exposure Breakdown</h3>
+                    <p class="text-sm text-gray-500 font-medium">Tracking capital volume concentration by partner institution</p>
+                </div>
+                <div class="relative flex-grow flex items-center justify-center min-h-[250px] w-full mt-4">
+                    <canvas id="bankExposureChart"></canvas>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- ================= RECENT PORTFOLIO TABLE ================= -->
+        <div class="bg-white rounded-2xl p-0 shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Recent Applications Portfolio</h3>
+                    <p class="text-sm text-gray-500">Latest loan applications processed across the network.</p>
+                </div>
+                <button onclick="handleExport()" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                    <i class="ph ph-download-simple"></i> Export CSV
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-50/80 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="px-6 py-4">App ID</th>
+                            <th class="px-6 py-4">Customer Details</th>
+                            <th class="px-6 py-4">Partner Bank</th>
+                            <th class="px-6 py-4">Product</th>
+                            <th class="px-6 py-4 text-right">Requested Amt</th>
+                            <th class="px-6 py-4 text-center">KYC / Status</th>
+                            <th class="px-6 py-4 text-right">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-table-body" class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <!-- Table rows injected via JS -->
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-400">
+                                <i class="ph ph-spinner-gap animate-spin text-2xl mb-2 inline-block"></i>
+                                <p>Loading portfolio data...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-100 bg-gray-50 text-xs text-gray-500 flex justify-between items-center">
+                <span id="table-entries-info">Showing 0 entries</span>
+                <div class="flex gap-1 items-center">
+                    <button id="btn-prev-page" class="px-2.5 py-1.5 rounded text-gray-500 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="ph ph-caret-left font-bold"></i>
+                    </button>
+                    <div id="pagination-numbers" class="flex gap-1">
+                        <!-- Dynamic page indicators -->
+                    </div>
+                    <button id="btn-next-page" class="px-2.5 py-1.5 rounded text-gray-500 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="ph ph-caret-right font-bold"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script to handle data fetching and rendering -->
+    <script>
+        // Global variables holding live/mock data state
+        let rawPortfolioData = [];
+        let dashboardData = {};
+        let currentPage = 1;
+        const itemsPerPage = 5;
+
+        // Chart instances
+        let donutChartInstance = null;
+        let bankExposureChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+        });
+
+        // Formatters
+        const currencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        });
+
+        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        // Custom notification system
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('notification-toast');
+            const icon = document.getElementById('notification-icon');
+            const msgSpan = document.getElementById('notification-message');
+            
+            msgSpan.textContent = message;
+            if (isError) {
+                toast.classList.add('border-red-500');
+                icon.className = 'ph-bold ph-warning-circle text-red-500 text-lg';
+            } else {
+                toast.classList.remove('border-red-500');
+                icon.className = 'ph-bold ph-info text-blue-400 text-lg';
+            }
+
+            toast.classList.remove('translate-y-[-150%]');
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-150%]');
+            }, 4000);
+        }
+
+        async function initDashboard() {
+            try {
+                let data;
+                try {
+                    // Try targeting your backend directly
+                    const response = await fetch('http://localhost:8091/admin/reports/loans');
+                    if (!response.ok) throw new Error('CORS or connection exception');
+                    data = await response.json();
+                    showToast("Dashboard synchronized with live databases successfully!");
+                } catch (e) {
+                    console.warn("Backend server at http://localhost:8091 is offline. Displaying local simulated assets.", e);
+                    data = await getMockData();
+                    showToast("Server offline. Displaying high-fidelity mock data.", false);
+                }
+                
+                dashboardData = data;
+                rawPortfolioData = data.recentCustomerPortfolio || [];
+                
+                renderKPIs(data);
+                renderChart(data);
+                renderBankExposureChart(rawPortfolioData);
+                
+                currentPage = 1;
+                renderTable();
+                
+            } catch (error) {
+                console.error("Failed to load dashboard data:", error);
+                showToast("System encountered an initialization error. Please verify endpoints.", true);
+            }
+        }
+
+        function renderKPIs(data) {
+            document.getElementById('kpi-disbursed').textContent = currencyFormatter.format(data.totalAmountDisbursed);
+            document.getElementById('kpi-outstanding').textContent = currencyFormatter.format(data.totalOutstandingBalance);
+            document.getElementById('kpi-customers').textContent = data.totalCustomers.toLocaleString('en-IN');
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('statusDonutChart').getContext('2d');
+            
+            // Update center text and sub-stats
+            const total = data.approvedApplications + data.pendingApplications;
+            document.getElementById('chart-total-center').textContent = total;
+            document.getElementById('stat-approved').textContent = data.approvedApplications;
+            document.getElementById('stat-pending').textContent = data.pendingApplications;
+
+            if (donutChartInstance) {
+                donutChartInstance.destroy();
+            }
+
+            donutChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Approved', 'Pending'],
+                    datasets: [{
+                        data: [data.approvedApplications, data.pendingApplications],
+                        backgroundColor: [
+                            '#2563eb', // primary blue
+                            '#f97316'  // orange-500
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%', // Space for center text
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    label += context.raw;
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Side-by-Side Grouped Bar Chart: Bank-Wise Exposure Breakdown
+        function renderBankExposureChart(portfolio) {
+            const canvas = document.getElementById('bankExposureChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            // Aggregate data on the frontend grouped by bankName
+            const bankAggregation = {};
+            portfolio.forEach(item => {
+                const bank = item.bankName || 'Unknown Bank';
+                const amt = parseFloat(item.requestedAmount) || 0;
+                const status = (item.applicationStatus || '').toUpperCase();
+
+                if (!bankAggregation[bank]) {
+                    bankAggregation[bank] = { approved: 0, pending: 0 };
+                }
+
+                if (status === 'APPROVED') {
+                    bankAggregation[bank].approved += amt;
+                } else if (status === 'PENDING') {
+                    bankAggregation[bank].pending += amt;
+                }
+            });
+
+            const labels = Object.keys(bankAggregation);
+            const approvedData = labels.map(bank => bankAggregation[bank].approved);
+            const pendingData = labels.map(bank => bankAggregation[bank].pending);
+
+            if (bankExposureChartInstance) {
+                bankExposureChartInstance.destroy();
+            }
+
+            bankExposureChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Approved Amount',
+                            data: approvedData,
+                            backgroundColor: '#2563eb', // Blue-600
+                            borderRadius: 6,
+                            barThickness: 16
+                        },
+                        {
+                            label: 'Requested Amount',
+                            data: pendingData,
+                            backgroundColor: '#f97316', // Orange-500
+                            borderRadius: 6,
+                            barThickness: 16
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11, family: 'Inter' }, color: '#64748b' }
+                        },
+                        y: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                font: { size: 10, family: 'Inter' },
+                                color: '#64748b',
+                                callback: function(value) {
+                                    if (value >= 100000) return '₹' + (value / 100000).toFixed(0) + 'L';
+                                    if (value >= 1000) return '₹' + (value / 1000).toFixed(0) + 'k';
+                                    return '₹' + value;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 11, family: 'Inter' },
+                                padding: 16,
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    label += currencyFormatter.format(context.raw);
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Table with Page Slicing (exactly 5 items per page)
+        function renderTable() {
+            const tbody = document.getElementById('portfolio-table-body');
+            if (!tbody) return;
+
+            const totalRecords = rawPortfolioData.length;
+            const totalPages = Math.ceil(totalRecords / itemsPerPage) || 1;
+
+            // Normalize boundary limits
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, totalRecords);
+            const paginatedSlice = rawPortfolioData.slice(startIdx, endIdx);
+
+            document.getElementById('table-entries-info').textContent = totalRecords > 0 
+                ? `Showing ${startIdx + 1} to ${endIdx} of ${totalRecords} entries` 
+                : 'Showing 0 to 0 of 0 entries';
+
+            // Pagination button logic
+            const prevBtn = document.getElementById('btn-prev-page');
+            const nextBtn = document.getElementById('btn-next-page');
+
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+
+            const paginationNumbersDiv = document.getElementById('pagination-numbers');
+            paginationNumbersDiv.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                if (i === currentPage) {
+                    btn.className = "px-3 py-1.5 rounded bg-blue-600 text-white font-semibold shadow-sm text-xs transition-all";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-medium text-xs transition-all";
+                    btn.onclick = () => {
+                        currentPage = i;
+                        renderTable();
+                    };
+                }
+                paginationNumbersDiv.appendChild(btn);
+            }
+
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            };
+
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            };
+
+            if (paginatedSlice.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-12 text-center text-gray-500 font-medium">No application records available.</td></tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = ''; // clear loading state
+            
+            paginatedSlice.forEach(row => {
+                // Formatting Helpers
+                const statusColor = row.applicationStatus === 'APPROVED' ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                                  : row.applicationStatus === 'PENDING' ? 'bg-orange-100 text-orange-700 border-orange-200' 
+                                  : 'bg-red-100 text-red-700 border-red-200';
+                
+                const kycColor = row.kycStatus === 'VERIFIED' ? 'text-green-600 bg-green-50' 
+                               : 'text-amber-600 bg-amber-50';
+
+                const formattedAmt = currencyFormatter.format(row.requestedAmount);
+                const formattedDate = row.loanApprovalDate ? dateFormatter.format(new Date(row.loanApprovalDate)) : '<span class="text-gray-400">-</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors group';
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-xs font-mono font-medium text-gray-600">
+                            APP-${row.applicationId.toString().padStart(4, '0')}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
+                            ${row.customerName ? row.customerName.charAt(0) : 'C'}
+                        </div>
+                        ${row.customerName || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 text-gray-600">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-bank text-gray-400"></i> ${row.bankName}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-gray-600">${row.productType}</td>
+                    <td class="px-6 py-4 text-right font-medium text-gray-900">${formattedAmt}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex flex-col items-center gap-1.5">
+                            <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase border ${statusColor}">
+                                ${row.applicationStatus}
+                            </span>
+                            <span class="text-[10px] font-medium px-2 py-0.5 rounded ${kycColor}">
+                                KYC: ${row.kycStatus}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right text-gray-500 text-sm">${formattedDate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Functional CSV Exporter
+        function handleExport() {
+            if (rawPortfolioData.length === 0) {
+                showToast("No data portfolio entries available to export.", true);
+                return;
+            }
+
+            const headers = ["App ID", "Customer Name", "Partner Bank", "Product Type", "Requested Amount (INR)", "Application Status", "KYC Status", "Loan Approval Date"];
+            const csvRows = [headers.join(",")];
+
+            rawPortfolioData.forEach(row => {
+                const values = [
+                    `"APP-${row.applicationId}"`,
+                    `"${row.customerName.replace(/"/g, '""')}"`,
+                    `"${row.bankName.replace(/"/g, '""')}"`,
+                    `"${row.productType.replace(/"/g, '""')}"`,
+                    row.requestedAmount,
+                    `"${row.applicationStatus}"`,
+                    `"${row.kycStatus}"`,
+                    `"${row.loanApprovalDate || 'N/A'}"`
+                ];
+                csvRows.push(values.join(","));
+            });
+
+            const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const downloadLink = document.createElement("a");
+            
+            downloadLink.setAttribute("href", encodedUri);
+            downloadLink.setAttribute("download", `loan_dashboard_portfolio_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(downloadLink);
+            
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            showToast("Structured CSV data compiled and downloaded.");
+        }
+    </script>
+</body>
+</html>
+
+
+==============================================admin-repayment-dashboard==========================
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Repayment Collections Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for Donut and Gauge Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark': '#0d1b2a',
+                        'brand-blue': '#1b263b',
+                        'brand-accent': '#415a77',
+                        'brand-light': '#e0e1dd',
+                        'primary': '#2563eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Custom scrollbar for the table */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Glassmorphism subtle effect for header */
+        .header-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Header Section -->
+    <div class="header-bg pt-8 pb-32 px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col items-center justify-center text-center space-y-4">
+                <span class="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold tracking-widest uppercase backdrop-blur-sm">
+                    Administrative Console
+                </span>
+                <div class="flex items-center gap-3 text-white">
+                    <i class="ph ph-hand-coins text-4xl text-green-400"></i>
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Collections & Repayments</h1>
+                </div>
+                <p class="text-blue-100 text-sm md:text-base max-w-2xl">
+                    Track collection efficiency, monitor pending EMIs, and review real-time repayment statuses across the network.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area (Overlapping the header) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-12 space-y-6">
+        
+        <!-- ================= KPI SCOREBOARD ================= -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- KPI 1: Expected Collections -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Expected Repayments</p>
+                        <h2 class="text-3xl font-bold text-gray-900 mt-2" id="kpi-expected">₹0.00</h2>
+                    </div>
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <i class="ph ph-calendar-check text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-gray-500">Total amount due for the current cycle</span>
+                </div>
+            </div>
+
+            <!-- KPI 2: Actual Collected -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Successfully Collected</p>
+                        <h2 class="text-3xl font-bold text-green-600 mt-2" id="kpi-collected">₹0.00</h2>
+                    </div>
+                    <div class="p-3 bg-green-50 text-green-600 rounded-xl">
+                        <i class="ph ph-vault text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-600 font-semibold flex items-center bg-green-50 px-2 py-0.5 rounded mr-2">
+                        <i class="ph-bold ph-trend-up mr-1"></i> Tracking well
+                    </span>
+                </div>
+            </div>
+
+            <!-- KPI 3: Pending Volume -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Pending Transactions</p>
+                        <h2 class="text-3xl font-bold text-orange-500 mt-2" id="kpi-pending-count">0</h2>
+                    </div>
+                    <div class="p-3 bg-orange-50 text-orange-600 rounded-xl">
+                        <i class="ph ph-clock-countdown text-2xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-gray-500">Transactions awaiting clearance</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CHARTS SECTION ================= -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Gauge Chart: Collection Ratio -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                <div class="mb-2">
+                    <h3 class="text-lg font-bold text-gray-900">Collection Efficiency</h3>
+                    <p class="text-sm text-gray-500">Collected vs. Expected amounts</p>
+                </div>
+                
+                <div class="relative flex-grow flex items-end justify-center min-h-[220px] pb-4">
+                    <div class="absolute bottom-4 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-4xl font-bold text-gray-800" id="gauge-percentage-text">0%</span>
+                        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider mt-1">Realization</span>
+                    </div>
+                    <!-- Chart.js Doughnut configured as a half-circle gauge -->
+                    <div class="w-full max-w-[350px]">
+                        <canvas id="efficiencyGaugeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donut Chart: Payment Status Breakdown -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                <div class="mb-2">
+                    <h3 class="text-lg font-bold text-gray-900">Transaction Volume</h3>
+                    <p class="text-sm text-gray-500">Count-based distribution of payments</p>
+                </div>
+                
+                <div class="relative flex-grow flex items-center justify-center min-h-[220px]">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                        <span class="text-3xl font-bold text-gray-800" id="donut-total-text">0</span>
+                        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total</span>
+                    </div>
+                    <div class="w-full max-w-[250px]">
+                        <canvas id="statusDonutChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                        <span class="text-sm text-gray-600 font-medium">Completed (<span id="stat-completed-count">0</span>)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-orange-400"></span>
+                        <span class="text-sm text-gray-600 font-medium">Pending (<span id="stat-pending-count">0</span>)</span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- ================= REPAYMENT DETAILS TABLE ================= -->
+        <div class="bg-white rounded-2xl p-0 shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Detailed Repayment Performance</h3>
+                    <p class="text-sm text-gray-500">Comprehensive list of EMI schedules and collection status.</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar min-h-[350px]">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-50/80 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="px-6 py-4">Repayment / App ID</th>
+                            <th class="px-6 py-4">Customer Details</th>
+                            <th class="px-6 py-4">Bank & Product</th>
+                            <th class="px-6 py-4 text-right">Amount Due</th>
+                            <th class="px-6 py-4 text-right">Due Date</th>
+                            <th class="px-6 py-4 text-center">Status</th>
+                            <th class="px-6 py-4 text-right">Payment Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="repayment-table-body" class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <!-- Table rows injected via JS -->
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-400">
+                                <i class="ph ph-spinner-gap animate-spin text-2xl mb-2 inline-block"></i>
+                                <p>Loading repayment data...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-100 bg-gray-50 text-xs text-gray-500 flex justify-between items-center">
+                <span id="table-entries-info">Showing 0 entries</span>
+                <div class="flex gap-1 items-center">
+                    <button id="prev-page" class="px-2 py-1 rounded text-gray-400 hover:bg-gray-200 cursor-not-allowed" disabled>
+                        <i class="ph ph-caret-left text-base"></i>
+                    </button>
+                    <div id="page-numbers" class="flex gap-1 items-center">
+                        <!-- Page numbers injected via JS -->
+                    </div>
+                    <button id="next-page" class="px-2 py-1 rounded text-gray-600 hover:bg-gray-200">
+                        <i class="ph ph-caret-right text-base"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script to handle data fetching and rendering -->
+    <script>
+        // Global variables for table state
+        let allRecords = [];
+        let filteredRecords = [];
+        let currentPage = 1;
+        const itemsPerPage = 5;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+        });
+
+        // Formatters
+        const currencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        });
+
+        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        async function initDashboard() {
+            try {
+                // Fetch data from backend
+                let data;
+                try {
+                    const response = await fetch('http://localhost:8091/admin/reports/repayments');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    data = await response.json();
+                } catch (e) {
+                    console.warn("Backend unavailable, using mock data for preview.", e);
+                    data = await getMockData(); // Fallback for demonstration
+                }
+                
+                renderKPIs(data);
+                renderGaugeChart(data);
+                renderDonutChart(data);
+                
+                // Set up table state & event listeners
+                allRecords = data.detailedRepaymentPerformance || [];
+                filteredRecords = [...allRecords];
+                
+                setupEventListeners();
+                renderTable();
+                
+            } catch (error) {
+                console.error("Dashboard initialization failed:", error);
+            }
+        }
+
+        function setupEventListeners() {
+            // Pagination Listeners
+            document.getElementById('prev-page').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            document.getElementById('next-page').addEventListener('click', () => {
+                const maxPage = Math.ceil(filteredRecords.length / itemsPerPage);
+                if (currentPage < maxPage) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+        }
+
+        function renderKPIs(data) {
+            document.getElementById('kpi-expected').textContent = currencyFormatter.format(data.totalExpectedRepayments);
+            document.getElementById('kpi-collected').textContent = currencyFormatter.format(data.totalCollectedRepayment);
+            document.getElementById('kpi-pending-count').textContent = data.numberOfPendingRepayments.toLocaleString();
+        }
+
+        // 1. GAUGE CHART (Collection Ratio)
+        function renderGaugeChart(data) {
+            const ctx = document.getElementById('efficiencyGaugeChart').getContext('2d');
+            
+            let ratio = 0;
+            if (data.totalExpectedRepayments > 0) {
+                ratio = (data.totalCollectedRepayment / data.totalExpectedRepayments) * 100;
+            }
+            
+            document.getElementById('gauge-percentage-text').textContent = ratio.toFixed(1) + '%';
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Collected', 'Pending/Shortfall'],
+                    datasets: [{
+                        data: [ratio, 100 - ratio],
+                        backgroundColor: ['#10b981', '#e2e8f0'],
+                        borderWidth: 0,
+                        hoverOffset: 2,
+                        circumference: 180,
+                        rotation: 270
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. DONUT CHART (Payment Status Breakdown)
+        function renderDonutChart(data) {
+            const ctx = document.getElementById('statusDonutChart').getContext('2d');
+            
+            const total = data.numberOfCompletedRepayments + data.numberOfPendingRepayments;
+            document.getElementById('donut-total-text').textContent = total.toLocaleString();
+            document.getElementById('stat-completed-count').textContent = data.numberOfCompletedRepayments.toLocaleString();
+            document.getElementById('stat-pending-count').textContent = data.numberOfPendingRepayments.toLocaleString();
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending'],
+                    datasets: [{
+                        data: [data.numberOfCompletedRepayments, data.numberOfPendingRepayments],
+                        backgroundColor: ['#22c55e', '#fb923c'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                    }
+                }
+            });
+        }
+
+        // 3. REPAYMENT DETAILS TABLE (With Pagination)
+        function renderTable() {
+            const tbody = document.getElementById('repayment-table-body');
+            
+            if (filteredRecords.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No repayment data found.</td></tr>`;
+                updatePaginationUI();
+                return;
+            }
+
+            // Calculate Pagination slices
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+
+            tbody.innerHTML = ''; 
+            
+            paginatedRecords.forEach(row => {
+                const isCompleted = row.paymentStatus === 'COMPLETED';
+                const statusStyles = isCompleted 
+                    ? 'bg-green-100 text-green-700 border-green-200'
+                    : 'bg-orange-100 text-orange-700 border-orange-200';
+                
+                const statusIcon = isCompleted ? 'ph-check-circle' : 'ph-clock';
+
+                const formattedAmt = currencyFormatter.format(row.amountDue);
+                const formattedDueDate = row.dueDate ? dateFormatter.format(new Date(row.dueDate)) : '-';
+                const formattedPaymentDate = row.paymentDate ? dateFormatter.format(new Date(row.paymentDate)) : '<span class="text-gray-400 italic">Pending</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="inline-flex items-center w-max px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-[11px] font-mono font-medium text-gray-600">
+                                REP-${row.repaymentId.toString().padStart(4, '0')}
+                            </span>
+                            <span class="text-[10px] text-gray-400">APP-${row.applicationId}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs shrink-0">
+                            ${row.customerName.charAt(0)}
+                        </div>
+                        ${row.customerName}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-700 flex items-center gap-1.5"><i class="ph ph-bank text-gray-400"></i> ${row.bankName}</span>
+                            <span class="text-xs text-gray-500">${row.productType}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right font-bold text-gray-900">${formattedAmt}</td>
+                    <td class="px-6 py-4 text-right text-gray-600 text-sm">${formattedDueDate}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider border ${statusStyles}">
+                            <i class="ph ${statusIcon}"></i> ${row.paymentStatus}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right text-sm">${formattedPaymentDate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updatePaginationUI();
+        }
+
+        function updatePaginationUI() {
+            const maxPage = Math.ceil(filteredRecords.length / itemsPerPage) || 1;
+            
+            const prevBtn = document.getElementById('prev-page');
+            const nextBtn = document.getElementById('next-page');
+            
+            // Toggle arrows
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.className = `px-2 py-1 rounded transition-colors ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200 cursor-pointer'}`;
+            
+            nextBtn.disabled = currentPage === maxPage;
+            nextBtn.className = `px-2 py-1 rounded transition-colors ${currentPage === maxPage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200 cursor-pointer'}`;
+
+            // Update "Showing X to Y of Z" text
+            const startEntry = (currentPage - 1) * itemsPerPage + 1;
+            const endEntry = Math.min(currentPage * itemsPerPage, filteredRecords.length);
+            const total = filteredRecords.length;
+
+            const infoText = total === 0 ? "Showing 0 entries" : `Showing ${startEntry} to ${endEntry} of ${total} entries`;
+            document.getElementById('table-entries-info').textContent = infoText;
+
+            // Generate Page Numbers (Truncated with Ellipses `...` to support high page volumes)
+            const pageNumbersContainer = document.getElementById('page-numbers');
+            pageNumbersContainer.innerHTML = '';
+            
+            const pageRange = [];
+            const delta = 1; // Range around active page
+            
+            for (let i = Math.max(2, currentPage - delta); i <= Math.min(maxPage - 1, currentPage + delta); i++) {
+                pageRange.push(i);
+            }
+            
+            if (currentPage - delta > 2) {
+                pageRange.unshift("...");
+            }
+            if (currentPage + delta < maxPage - 1) {
+                pageRange.push("...");
+            }
+            
+            pageRange.unshift(1);
+            if (maxPage > 1) {
+                pageRange.push(maxPage);
+            }
+
+            pageRange.forEach(page => {
+                if (page === "...") {
+                    const span = document.createElement('span');
+                    span.textContent = "...";
+                    span.className = "px-2 py-1 text-gray-400 font-medium select-none";
+                    pageNumbersContainer.appendChild(span);
+                } else {
+                    const btn = document.createElement('button');
+                    btn.textContent = page;
+                    if(page === currentPage) {
+                        btn.className = "px-2.5 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 font-medium shadow-sm transition-colors";
+                    } else {
+                        btn.className = "px-2.5 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors";
+                    }
+                    btn.onclick = () => { 
+                        currentPage = page; 
+                        renderTable(); 
+                    };
+                    pageNumbersContainer.appendChild(btn);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+=================================================adimin-outstanding-dashboard========================
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Outstanding Loan Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for Histogram -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark': '#0d1b2a',
+                        'brand-blue': '#1b263b',
+                        'brand-accent': '#415a77',
+                        'brand-light': '#e0e1dd',
+                        'primary': '#2563eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Custom scrollbar for the table */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Gradient header background */
+        .header-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Header Section -->
+    <div class="header-bg pt-8 pb-32 px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col items-center justify-center text-center space-y-4">
+                <span class="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold tracking-widest uppercase backdrop-blur-sm">
+                    Administrative Console
+                </span>
+                <div class="flex items-center gap-3 text-white">
+                    <i class="ph ph-warning-circle text-4xl text-orange-400"></i>
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Outstanding Loan Portfolio</h1>
+                </div>
+                <p class="text-blue-100 text-sm md:text-base max-w-2xl">
+                    Monitor portfolio risk, track aging delinquency buckets, and review outstanding exposure across active partner agreements.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area (Overlapping the header) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-12 space-y-6">
+        
+        <!-- ================= KPI SCOREBOARD (4 Cards) ================= -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- KPI 1: Total Outstanding -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Outstanding Balance</p>
+                        <h2 class="text-2xl font-bold text-gray-900 mt-2" id="kpi-total-outstanding">₹0.00</h2>
+                    </div>
+                    <div class="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+                        <i class="ph ph-coins text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 2: Overdue Loans Count -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Delinquent / Overdue Loans</p>
+                        <h2 class="text-2xl font-bold text-red-600 mt-2" id="kpi-overdue-count">0</h2>
+                    </div>
+                    <div class="p-2.5 bg-red-50 text-red-600 rounded-lg">
+                        <i class="ph ph-siren text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 3: Largest Outstanding -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Largest Single Exposure</p>
+                        <h2 class="text-2xl font-bold text-gray-900 mt-2" id="kpi-largest-outstanding">₹0.00</h2>
+                    </div>
+                    <div class="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
+                        <i class="ph ph-chart-line-up text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 4: Average Outstanding -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Avg Outstanding per Loan</p>
+                        <h2 class="text-2xl font-bold text-gray-900 mt-2" id="kpi-avg-outstanding">₹0.00</h2>
+                    </div>
+                    <div class="p-2.5 bg-green-50 text-green-600 rounded-lg">
+                        <i class="ph ph-scales text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CHARTS SECTION ================= -->
+        <div class="w-full">
+            <!-- Histogram: Aging Buckets (Takes full screen space beautifully) -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col w-full">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-gray-900">Delinquency Aging Buckets</h3>
+                    <p class="text-sm text-gray-500">Distribution of all active loans by their current days overdue status</p>
+                </div>
+                <div class="relative min-h-[300px] w-full">
+                    <canvas id="agingHistogramChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= OUTSTANDING DETAILS TABLE ================= -->
+        <div class="bg-white rounded-2xl p-0 shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Detailed Outstanding Portfolio</h3>
+                    <p class="text-sm text-gray-500">Sorted by highest outstanding balance.</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-50/80 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="px-6 py-4">App ID</th>
+                            <th class="px-6 py-4">Customer Details</th>
+                            <th class="px-6 py-4">Bank & Product</th>
+                            <th class="px-6 py-4 text-right">Orig. Amount</th>
+                            <th class="px-6 py-4 text-right">Outstanding Bal.</th>
+                            <th class="px-6 py-4 text-center">Aging / Days Overdue</th>
+                            <th class="px-6 py-4 text-center">Int. Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-table-body" class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <!-- Table rows injected via JS -->
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-400">
+                                <i class="ph ph-spinner-gap animate-spin text-2xl mb-2 inline-block"></i>
+                                <p>Loading outstanding portfolio...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Custom Dynamic Pagination Footer -->
+            <div class="p-4 border-t border-gray-100 bg-gray-50 text-xs text-gray-500 flex justify-between items-center">
+                <span id="table-entries-info">Showing 0 to 0 of 0 entries</span>
+                <div class="flex gap-1" id="paginationControls">
+                    <!-- Dynamic page buttons go here -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script to handle data fetching, pagination, and rendering -->
+    <script>
+        // Global variables for dashboard state
+        let dashboardData = null;
+        let filteredPortfolio = [];
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let histogramChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+        });
+
+        // Formatters
+        const currencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        });
+
+        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        async function initDashboard() {
+            try {
+                // Fetch data from backend
+                let data;
+                try {
+                    const response = await fetch('http://localhost:8091/admin/reports/outstanding-loans');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    data = await response.json();
+                } catch (e) {
+                    console.warn("Backend unavailable, using rich mock data for preview.", e);
+                    data = await getMockData(); // Fallback for UI demonstration
+                }
+                
+                dashboardData = data;
+                filteredPortfolio = [...(data.detailedOutstandingPortfolio || [])];
+                
+                renderKPIs(data);
+                renderHistogram(data.detailedOutstandingPortfolio);
+                
+                // Initialize Table and Pagination to Page 1
+                currentPage = 1;
+                renderTable();
+                
+            } catch (error) {
+                console.error("Dashboard initialization failed:", error);
+            }
+        }
+
+        function renderKPIs(data) {
+            document.getElementById('kpi-total-outstanding').textContent = currencyFormatter.format(data.totalOutstandingBalance);
+            document.getElementById('kpi-overdue-count').textContent = data.countOfOverdueLoans.toLocaleString();
+            document.getElementById('kpi-largest-outstanding').textContent = currencyFormatter.format(data.largestOutstandingAmount);
+            document.getElementById('kpi-avg-outstanding').textContent = currencyFormatter.format(data.averageOutstandingBalance);
+        }
+
+        // HISTOGRAM (Aging Buckets)
+        function renderHistogram(portfolio) {
+            const ctx = document.getElementById('agingHistogramChart').getContext('2d');
+            
+            // Bucket variables
+            let bucketCurrent = 0;
+            let bucket1to30 = 0;
+            let bucket31to60 = 0;
+            let bucket60Plus = 0;
+
+            portfolio.forEach(loan => {
+                const days = loan.daysOverdue || 0;
+                if (days === 0) bucketCurrent++;
+                else if (days >= 1 && days <= 30) bucket1to30++;
+                else if (days >= 31 && days <= 60) bucket31to60++;
+                else bucket60Plus++;
+            });
+
+            if (histogramChartInstance) {
+                histogramChartInstance.destroy();
+            }
+
+            histogramChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Current (0 Days)', '1-30 Days Overdue', '31-60 Days Overdue', '60+ Days Overdue'],
+                    datasets: [{
+                        label: 'Number of Active Loans',
+                        data: [bucketCurrent, bucket1to30, bucket31to60, bucket60Plus],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.85)', // Blue for current
+                            'rgba(245, 158, 11, 0.85)', // Amber/Yellow for slight delay
+                            'rgba(249, 115, 22, 0.85)',  // Orange for moderate delay
+                            'rgba(239, 68, 68, 0.85)'    // Red for severe delay
+                        ],
+                        borderColor: [
+                            '#2563eb',
+                            '#d97706',
+                            '#ea580c',
+                            '#dc2626'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { size: 13, family: "'Inter', sans-serif" },
+                            bodyFont: { size: 12, family: "'Inter', sans-serif" },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (context) => ` ${context.raw} Outstanding Loans`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, precision: 0, font: { family: "'Inter', sans-serif" } },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { font: { family: "'Inter', sans-serif', font-weight: '600'" } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // PAGINATED OUTSTANDING PORTFOLIO TABLE
+        function renderTable() {
+            const tbody = document.getElementById('portfolio-table-body');
+            const totalRecords = filteredPortfolio.length;
+
+            if (totalRecords === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No outstanding portfolio data found.</td></tr>`;
+                document.getElementById('table-entries-info').textContent = "Showing 0 to 0 of 0 entries";
+                renderPaginationControls(0);
+                return;
+            }
+
+            // Calculate Pagination indices
+            const totalPages = Math.ceil(totalRecords / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalRecords);
+            const paginatedRecords = filteredPortfolio.slice(startIndex, endIndex);
+
+            // Update footer metrics
+            document.getElementById('table-entries-info').textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalRecords} entries`;
+
+            tbody.innerHTML = ''; 
+            
+            paginatedRecords.forEach(row => {
+                // Delinquency Highlighting logic
+                const isOverdue = row.daysOverdue > 0;
+                const overdueStyles = row.daysOverdue > 60 ? 'bg-red-100 text-red-700 border-red-200' 
+                                    : row.daysOverdue > 30 ? 'bg-orange-100 text-orange-700 border-orange-200'
+                                    : isOverdue ? 'bg-yellow-100 text-yellow-700 border-yellow-200' 
+                                    : 'bg-green-50 text-green-700 border-green-200';
+                
+                const overdueText = isOverdue ? `${row.daysOverdue} Days Late` : 'Current';
+                const overdueIcon = isOverdue ? 'ph-warning-circle' : 'ph-check-circle';
+                
+                // Formatted Data
+                const formattedOrigAmt = currencyFormatter.format(row.originalLoanAmount);
+                const formattedOutstBal = currencyFormatter.format(row.outstandingBalance);
+                const approvalDateStr = row.approvalDate ? dateFormatter.format(new Date(row.approvalDate)) : '-';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors group';
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="inline-flex items-center w-max px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-[11px] font-mono font-medium text-gray-600">
+                                APP-${row.applicationId.toString().padStart(4, '0')}
+                            </span>
+                            <span class="text-[10px] text-gray-400">Approved: ${approvalDateStr}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                            ${row.customerName ? row.customerName.charAt(0) : 'U'}
+                        </div>
+                        <div class="flex flex-col">
+                            <span>${row.customerName || 'N/A'}</span>
+                            <span class="text-xs font-normal text-gray-400">ID: CUST-${row.customerId}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                                <i class="ph ph-bank text-gray-400"></i> ${row.bankName}
+                            </span>
+                            <span class="text-xs text-gray-500">${row.productType}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right text-gray-500">${formattedOrigAmt}</td>
+                    <td class="px-6 py-4 text-right font-bold text-gray-900">${formattedOutstBal}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider border ${overdueStyles}">
+                            <i class="ph ${overdueIcon}"></i> ${overdueText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-center text-sm font-medium text-gray-600">${row.interestRate}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderPaginationControls(totalPages);
+        }
+
+        // Render Pagination numbers
+        function renderPaginationControls(totalPages) {
+            const paginationContainer = document.getElementById('paginationControls');
+            paginationContainer.innerHTML = '';
+
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = `
+                    <button class="px-2 py-1 rounded text-gray-300 cursor-not-allowed" disabled><i class="ph ph-caret-left"></i></button>
+                    <button class="px-3 py-1 rounded bg-blue-600 text-white font-medium">1</button>
+                    <button class="px-2 py-1 rounded text-gray-300 cursor-not-allowed" disabled><i class="ph ph-caret-right"></i></button>
+                `;
+                return;
+            }
+
+            // Previous Button
+            const prevButton = document.createElement('button');
+            prevButton.className = `px-2 py-1 rounded transition-all ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`;
+            prevButton.innerHTML = `<i class="ph ph-caret-left"></i>`;
+            if (currentPage > 1) {
+                prevButton.addEventListener('click', () => {
+                    currentPage--;
+                    renderTable();
+                });
+            } else {
+                prevButton.disabled = true;
+            }
+            paginationContainer.appendChild(prevButton);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                if (i === currentPage) {
+                    pageBtn.className = "px-3 py-1 rounded bg-blue-600 text-white font-medium shadow-sm transition-all";
+                } else {
+                    pageBtn.className = "px-3 py-1 rounded text-gray-600 hover:bg-gray-200 transition-all";
+                }
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                });
+                paginationContainer.appendChild(pageBtn);
+            }
+
+            // Next Button
+            const nextButton = document.createElement('button');
+            nextButton.className = `px-2 py-1 rounded transition-all ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`;
+            nextButton.innerHTML = `<i class="ph ph-caret-right"></i>`;
+            if (currentPage < totalPages) {
+                nextButton.addEventListener('click', () => {
+                    currentPage++;
+                    renderTable();
+                });
+            } else {
+                nextButton.disabled = true;
+            }
+            paginationContainer.appendChild(nextButton);
+        }
+    </script>
+</body>
+</html>

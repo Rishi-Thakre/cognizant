@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Outstanding Loan Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for Histogram -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark': '#0d1b2a',
+                        'brand-blue': '#1b263b',
+                        'brand-accent': '#415a77',
+                        'brand-light': '#e0e1dd',
+                        'primary': '#2563eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Custom scrollbar for the table */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Gradient header background */
+        .header-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Header Section -->
+    <div class="header-bg pt-8 pb-32 px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col items-center justify-center text-center space-y-4">
+                <span class="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold tracking-widest uppercase backdrop-blur-sm">
+                    Administrative Console
+                </span>
+                <div class="flex items-center gap-3 text-white">
+                    <i class="ph ph-warning-circle text-4xl text-orange-400"></i>
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Outstanding Loan Portfolio</h1>
+                </div>
+                <p class="text-blue-100 text-sm md:text-base max-w-2xl">
+                    Monitor portfolio risk, track aging delinquency buckets, and review outstanding exposure across active partner agreements.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area (Overlapping the header) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-12 space-y-6">
+        
+        <!-- ================= KPI SCOREBOARD (4 Cards) ================= -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- KPI 1: Total Outstanding -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Outstanding Balance</p>
+                        <h2 class="text-2xl font-bold text-gray-900 mt-2" id="kpi-total-outstanding">₹0.00</h2>
+                    </div>
+                    <div class="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+                        <i class="ph ph-coins text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 2: Overdue Loans Count -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Delinquent / Overdue Loans</p>
+                        <h2 class="text-2xl font-bold text-red-600 mt-2" id="kpi-overdue-count">0</h2>
+                    </div>
+                    <div class="p-2.5 bg-red-50 text-red-600 rounded-lg">
+                        <i class="ph ph-siren text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 3: Largest Outstanding -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Largest Single Exposure</p>
+                        <h2 class="text-2xl font-bold text-gray-900 mt-2" id="kpi-largest-outstanding">₹0.00</h2>
+                    </div>
+                    <div class="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
+                        <i class="ph ph-chart-line-up text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 4: Average Outstanding -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Avg Outstanding per Loan</p>
+                        <h2 class="text-2xl font-bold text-gray-900 mt-2" id="kpi-avg-outstanding">₹0.00</h2>
+                    </div>
+                    <div class="p-2.5 bg-green-50 text-green-600 rounded-lg">
+                        <i class="ph ph-scales text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CHARTS SECTION ================= -->
+        <div class="w-full">
+            <!-- Histogram: Aging Buckets (Takes full screen space beautifully) -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col w-full">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-gray-900">Delinquency Aging Buckets</h3>
+                    <p class="text-sm text-gray-500">Distribution of all active loans by their current days overdue status</p>
+                </div>
+                <div class="relative min-h-[300px] w-full">
+                    <canvas id="agingHistogramChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= OUTSTANDING DETAILS TABLE ================= -->
+        <div class="bg-white rounded-2xl p-0 shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Detailed Outstanding Portfolio</h3>
+                    <p class="text-sm text-gray-500">Sorted by highest outstanding balance.</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-50/80 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="px-6 py-4">App ID</th>
+                            <th class="px-6 py-4">Customer Details</th>
+                            <th class="px-6 py-4">Bank & Product</th>
+                            <th class="px-6 py-4 text-right">Orig. Amount</th>
+                            <th class="px-6 py-4 text-right">Outstanding Bal.</th>
+                            <th class="px-6 py-4 text-center">Aging / Days Overdue</th>
+                            <th class="px-6 py-4 text-center">Int. Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-table-body" class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <!-- Table rows injected via JS -->
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-400">
+                                <i class="ph ph-spinner-gap animate-spin text-2xl mb-2 inline-block"></i>
+                                <p>Loading outstanding portfolio...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Custom Dynamic Pagination Footer -->
+            <div class="p-4 border-t border-gray-100 bg-gray-50 text-xs text-gray-500 flex justify-between items-center">
+                <span id="table-entries-info">Showing 0 to 0 of 0 entries</span>
+                <div class="flex gap-1" id="paginationControls">
+                    <!-- Dynamic page buttons go here -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script to handle data fetching, pagination, and rendering -->
+    <script>
+        // Global variables for dashboard state
+        let dashboardData = null;
+        let filteredPortfolio = [];
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let histogramChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+        });
+
+        // Formatters
+        const currencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        });
+
+        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        async function initDashboard() {
+            try {
+                // Fetch data from backend
+                let data;
+                try {
+                    const response = await fetch('http://localhost:8091/admin/reports/outstanding-loans');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    data = await response.json();
+                } catch (e) {
+                    console.warn("Backend unavailable, using rich mock data for preview.", e);
+                    data = await getMockData(); // Fallback for UI demonstration
+                }
+                
+                dashboardData = data;
+                filteredPortfolio = [...(data.detailedOutstandingPortfolio || [])];
+                
+                renderKPIs(data);
+                renderHistogram(data.detailedOutstandingPortfolio);
+                
+                // Initialize Table and Pagination to Page 1
+                currentPage = 1;
+                renderTable();
+                
+            } catch (error) {
+                console.error("Dashboard initialization failed:", error);
+            }
+        }
+
+        function renderKPIs(data) {
+            document.getElementById('kpi-total-outstanding').textContent = currencyFormatter.format(data.totalOutstandingBalance);
+            document.getElementById('kpi-overdue-count').textContent = data.countOfOverdueLoans.toLocaleString();
+            document.getElementById('kpi-largest-outstanding').textContent = currencyFormatter.format(data.largestOutstandingAmount);
+            document.getElementById('kpi-avg-outstanding').textContent = currencyFormatter.format(data.averageOutstandingBalance);
+        }
+
+        // HISTOGRAM (Aging Buckets)
+        function renderHistogram(portfolio) {
+            const ctx = document.getElementById('agingHistogramChart').getContext('2d');
+            
+            // Bucket variables
+            let bucketCurrent = 0;
+            let bucket1to30 = 0;
+            let bucket31to60 = 0;
+            let bucket60Plus = 0;
+
+            portfolio.forEach(loan => {
+                const days = loan.daysOverdue || 0;
+                if (days === 0) bucketCurrent++;
+                else if (days >= 1 && days <= 30) bucket1to30++;
+                else if (days >= 31 && days <= 60) bucket31to60++;
+                else bucket60Plus++;
+            });
+
+            if (histogramChartInstance) {
+                histogramChartInstance.destroy();
+            }
+
+            histogramChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Current (0 Days)', '1-30 Days Overdue', '31-60 Days Overdue', '60+ Days Overdue'],
+                    datasets: [{
+                        label: 'Number of Active Loans',
+                        data: [bucketCurrent, bucket1to30, bucket31to60, bucket60Plus],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.85)', // Blue for current
+                            'rgba(245, 158, 11, 0.85)', // Amber/Yellow for slight delay
+                            'rgba(249, 115, 22, 0.85)',  // Orange for moderate delay
+                            'rgba(239, 68, 68, 0.85)'    // Red for severe delay
+                        ],
+                        borderColor: [
+                            '#2563eb',
+                            '#d97706',
+                            '#ea580c',
+                            '#dc2626'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { size: 13, family: "'Inter', sans-serif" },
+                            bodyFont: { size: 12, family: "'Inter', sans-serif" },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (context) => ` ${context.raw} Outstanding Loans`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, precision: 0, font: { family: "'Inter', sans-serif" } },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { font: { family: "'Inter', sans-serif', font-weight: '600'" } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // PAGINATED OUTSTANDING PORTFOLIO TABLE
+        function renderTable() {
+            const tbody = document.getElementById('portfolio-table-body');
+            const totalRecords = filteredPortfolio.length;
+
+            if (totalRecords === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No outstanding portfolio data found.</td></tr>`;
+                document.getElementById('table-entries-info').textContent = "Showing 0 to 0 of 0 entries";
+                renderPaginationControls(0);
+                return;
+            }
+
+            // Calculate Pagination indices
+            const totalPages = Math.ceil(totalRecords / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalRecords);
+            const paginatedRecords = filteredPortfolio.slice(startIndex, endIndex);
+
+            // Update footer metrics
+            document.getElementById('table-entries-info').textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalRecords} entries`;
+
+            tbody.innerHTML = ''; 
+            
+            paginatedRecords.forEach(row => {
+                // Delinquency Highlighting logic
+                const isOverdue = row.daysOverdue > 0;
+                const overdueStyles = row.daysOverdue > 60 ? 'bg-red-100 text-red-700 border-red-200' 
+                                    : row.daysOverdue > 30 ? 'bg-orange-100 text-orange-700 border-orange-200'
+                                    : isOverdue ? 'bg-yellow-100 text-yellow-700 border-yellow-200' 
+                                    : 'bg-green-50 text-green-700 border-green-200';
+                
+                const overdueText = isOverdue ? `${row.daysOverdue} Days Late` : 'Current';
+                const overdueIcon = isOverdue ? 'ph-warning-circle' : 'ph-check-circle';
+                
+                // Formatted Data
+                const formattedOrigAmt = currencyFormatter.format(row.originalLoanAmount);
+                const formattedOutstBal = currencyFormatter.format(row.outstandingBalance);
+                const approvalDateStr = row.approvalDate ? dateFormatter.format(new Date(row.approvalDate)) : '-';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors group';
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="inline-flex items-center w-max px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-[11px] font-mono font-medium text-gray-600">
+                                APP-${row.applicationId.toString().padStart(4, '0')}
+                            </span>
+                            <span class="text-[10px] text-gray-400">Approved: ${approvalDateStr}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                            ${row.customerName ? row.customerName.charAt(0) : 'U'}
+                        </div>
+                        <div class="flex flex-col">
+                            <span>${row.customerName || 'N/A'}</span>
+                            <span class="text-xs font-normal text-gray-400">ID: CUST-${row.customerId}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                                <i class="ph ph-bank text-gray-400"></i> ${row.bankName}
+                            </span>
+                            <span class="text-xs text-gray-500">${row.productType}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right text-gray-500">${formattedOrigAmt}</td>
+                    <td class="px-6 py-4 text-right font-bold text-gray-900">${formattedOutstBal}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider border ${overdueStyles}">
+                            <i class="ph ${overdueIcon}"></i> ${overdueText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-center text-sm font-medium text-gray-600">${row.interestRate}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderPaginationControls(totalPages);
+        }
+
+        // Render Pagination numbers
+        function renderPaginationControls(totalPages) {
+            const paginationContainer = document.getElementById('paginationControls');
+            paginationContainer.innerHTML = '';
+
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = `
+                    <button class="px-2 py-1 rounded text-gray-300 cursor-not-allowed" disabled><i class="ph ph-caret-left"></i></button>
+                    <button class="px-3 py-1 rounded bg-blue-600 text-white font-medium">1</button>
+                    <button class="px-2 py-1 rounded text-gray-300 cursor-not-allowed" disabled><i class="ph ph-caret-right"></i></button>
+                `;
+                return;
+            }
+
+            // Previous Button
+            const prevButton = document.createElement('button');
+            prevButton.className = `px-2 py-1 rounded transition-all ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`;
+            prevButton.innerHTML = `<i class="ph ph-caret-left"></i>`;
+            if (currentPage > 1) {
+                prevButton.addEventListener('click', () => {
+                    currentPage--;
+                    renderTable();
+                });
+            } else {
+                prevButton.disabled = true;
+            }
+            paginationContainer.appendChild(prevButton);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                if (i === currentPage) {
+                    pageBtn.className = "px-3 py-1 rounded bg-blue-600 text-white font-medium shadow-sm transition-all";
+                } else {
+                    pageBtn.className = "px-3 py-1 rounded text-gray-600 hover:bg-gray-200 transition-all";
+                }
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                });
+                paginationContainer.appendChild(pageBtn);
+            }
+
+            // Next Button
+            const nextButton = document.createElement('button');
+            nextButton.className = `px-2 py-1 rounded transition-all ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-200'}`;
+            nextButton.innerHTML = `<i class="ph ph-caret-right"></i>`;
+            if (currentPage < totalPages) {
+                nextButton.addEventListener('click', () => {
+                    currentPage++;
+                    renderTable();
+                });
+            } else {
+                nextButton.disabled = true;
+            }
+            paginationContainer.appendChild(nextButton);
+        }
+    </script>
+</body>
+</html>

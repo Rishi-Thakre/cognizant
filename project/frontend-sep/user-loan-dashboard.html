@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Loan Dashboard | Nexus Finance</title>
+    
+    <!-- Google Fonts - Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f4ff',
+                            100: '#e1e9fe',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            900: '#1e3a8a',
+                            dark: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Custom Scrollbar for premium feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .premium-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+        .progress-glow {
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans antialiased">
+
+    <!-- MAIN DARK BLUE HEADER BANNER -->
+    <header class="premium-gradient text-white pt-12 pb-24 px-4 relative overflow-hidden">
+        <!-- SVG Abstract Background Circles for high fidelity UI -->
+        <!-- <div class="absolute inset-0 opacity-10 pointer-events-none">
+            <svg class="absolute -top-12 -left-12 w-96 h-96" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+            </svg>
+            <svg class="absolute -bottom-24 -right-12 w-96 h-96" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="1"></circle>
+            </svg>
+        </div> -->
+
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-3">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Customer Portal
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold font-display tracking-tight">
+                        My Financial Summary
+                    </h1>
+                    <p class="text-blue-200 mt-1.5 text-sm md:text-base font-light max-w-xl">
+                        Monitor active loan accounts, upcoming repayment due dates, and your progression towards achieving debt-free independence.
+                    </p>
+                </div>
+                
+                <!-- Display Active User Badge -->
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-3.5 shadow-xl">
+                    <div class="h-10 w-10 rounded-xl bg-blue-500 flex items-center justify-center text-white font-bold text-lg font-display">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div id="user-display-name" class="text-sm font-bold font-display text-white">Loading Customer...</div>
+                        <div id="user-display-id" class="text-xs text-blue-200 font-medium tracking-wider">Customer ID: Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT OVERLAY CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 pb-16 -mt-14 relative z-20">
+
+        <!-- STATUS FEEDBACK TOAST / BANNER -->
+        <div id="status-toast" class="hidden mb-6 p-4 rounded-xl shadow-lg border flex items-center justify-between transition-all duration-300">
+            <div class="flex items-center gap-3">
+                <span id="status-toast-icon"></span>
+                <div class="flex flex-col">
+                    <p id="status-toast-msg" class="text-sm font-semibold"></p>
+                    <p id="status-toast-submsg" class="text-xs opacity-85 mt-0.5"></p>
+                </div>
+            </div>
+            <button onclick="dismissToast()" class="text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- ROW 1: THE "FINANCIAL PULSE" KPI CARDS (SCOREBOARD) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- KPI 1: NEXT PAYMENT DUE -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-300">
+                    <i data-lucide="calendar-clock" class="w-16 h-16 text-blue-900"></i>
+                </div>
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="p-3 bg-rose-50 rounded-xl text-rose-600">
+                        <i data-lucide="calendar" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-slate-500 text-sm font-semibold tracking-wide">Next Payment Due</span>
+                </div>
+                <h3 id="kpi-next-repayment" class="text-3xl font-bold font-display text-slate-900 tracking-tight">
+                    ₹0.00
+                </h3>
+                <div class="mt-2.5 flex items-center gap-1.5 text-slate-500 text-xs">
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <span>Due By:</span>
+                    <span id="kpi-next-duedate" class="font-bold text-slate-800">Loading...</span>
+                </div>
+            </div>
+
+            <!-- KPI 2: REMAINING DEBT -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-300">
+                    <i data-lucide="badge-indian-rupee" class="w-16 h-16 text-blue-900"></i>
+                </div>
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="p-3 bg-amber-50 rounded-xl text-amber-600">
+                        <i data-lucide="landmark" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-slate-500 text-sm font-semibold tracking-wide">Remaining Balance to Pay</span>
+                </div>
+                <h3 id="kpi-remaining-principal" class="text-3xl font-bold font-display text-slate-900 tracking-tight">
+                    ₹0.00
+                </h3>
+                <div class="mt-2.5 h-5">
+                    <!-- Clean layout spacer (Sub-label removed) -->
+                </div>
+            </div>
+
+            <!-- KPI 3: TOTAL ACTIVE LOANS -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-300">
+                    <i data-lucide="folders" class="w-16 h-16 text-blue-900"></i>
+                </div>
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="p-3 bg-blue-50 rounded-xl text-blue-600">
+                        <i data-lucide="layers" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-slate-500 text-sm font-semibold tracking-wide">Total Active Loans</span>
+                </div>
+                <h3 id="kpi-active-loans" class="text-3xl font-bold font-display text-slate-900 tracking-tight">
+                    0
+                </h3>
+                <div class="mt-2.5 h-5">
+                    <!-- Clean layout spacer (Sub-label removed) -->
+                </div>
+            </div>
+        </div>
+
+        <!-- REWARDING LOAN PAYOFF PROGRESS CARD -->
+        <div class="bg-white rounded-2xl p-6 md:p-8 border border-slate-100 shadow-sm mb-8 relative overflow-hidden">
+            <!-- Subtle backdrop gradient -->
+            <div class="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none"></div>
+
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                <div class="space-y-1.5 max-w-xl">
+                    <div class="flex items-center gap-2 text-blue-600 font-bold uppercase tracking-wider text-xs">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> Payoff Progress Indicator
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-extrabold text-slate-900 font-display">Your Path to Debt Independence</h2>
+                    <p class="text-slate-500 text-sm">
+                        This chart visualizes how much of your total debt you have successfully cleared. Every payment brings you closer to 100% financial freedom!
+                    </p>
+                </div>
+                
+                <!-- Large Highlight Metrics Inside Payoff Panel -->
+                <div class="flex flex-wrap items-center gap-6 lg:text-right">
+                    <div>
+                        <div class="text-slate-400 text-xs uppercase font-medium">Amount Paid Till Now</div>
+                        <div id="progress-amount-paid" class="text-xl font-bold text-emerald-600 font-display">₹0.00</div>
+                    </div>
+                    <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
+                    <div>
+                        <div class="text-slate-400 text-xs uppercase font-medium">Total Payable</div>
+                        <div id="progress-amount-total" class="text-xl font-bold text-slate-900 font-display">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Visual Progress Bar Integration -->
+            <div class="mt-8">
+                <div class="flex justify-between items-center mb-2.5">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-sm font-semibold text-slate-700">Overall Payoff Progress</span>
+                        <span id="badge-percentage" class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">0%</span>
+                    </div>
+                    <span id="progress-percentage-text" class="text-sm font-extrabold text-blue-600 font-display">0.0% Completed</span>
+                </div>
+                
+                <!-- Double Layer Outer Track -->
+                <div class="w-full bg-slate-100 rounded-full h-4 p-0.5 overflow-hidden border border-slate-200/50">
+                    <div id="progress-bar-fill" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full rounded-full transition-all duration-1000 ease-out progress-glow" style="width: 0%"></div>
+                </div>
+
+                <div class="flex justify-between items-center mt-3 text-xs text-slate-400">
+                    <div class="flex items-center gap-1">
+                        <span class="h-2 w-2 rounded-full bg-blue-500"></span> Journey Started
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Debt Free Target (100%)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN TABLE & LIST CARD -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <!-- Table Header Bar -->
+            <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 font-display">Registered Loan Contracts</h3>
+                    <p class="text-slate-500 text-xs mt-0.5">Comprehensive details of your active and past loan applications.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="table-entries-badge" class="px-2.5 py-1 text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-600 rounded-lg">
+                        0 Applications Found
+                    </span>
+                </div>
+            </div>
+
+            <!-- Responsive Table Wrapper -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200/60 text-slate-500 text-xs uppercase font-bold bg-slate-50/50 select-none">
+                            <th class="py-4 px-6">ID & Contract Product</th>
+                            <th class="py-4 px-6 text-right">Principal (Approved)</th>
+                            <th class="py-4 px-6 text-right">Total Payable</th>
+                            <th class="py-4 px-6 text-right">Remaining Balance</th>
+                            <th class="py-4 px-6 text-center">Interest</th>
+                            <th class="py-4 px-6 text-center">Tenure (Mos.)</th>
+                            <th class="py-4 px-6 text-center">Next Due Date</th>
+                            <th class="py-4 px-6 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loans-table-body" class="divide-y divide-slate-100 text-sm">
+                        <!-- Loading State (Dynamically Replaced) -->
+                        <tr>
+                            <td colspan="8" class="py-16 text-center">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <div class="h-8 w-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+                                    <span class="text-slate-500 font-medium">Reading customer database records...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer Status -->
+            <!-- <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400 bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield" class="w-4 h-4 text-slate-400"></i>
+                    <span>Authorized Financial Portal Connection</span>
+                </div>
+                <div id="fetch-timestamp" class="italic">Last Synced: Not yet updated</div>
+            </div> -->
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-500 text-xs py-8 border-t border-slate-800 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="font-semibold text-slate-400">Nexus Core Banking API Module V2.1</p>
+            <p>&copy; 2026 Nexus Financial Alliance Group. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- INTERACTION LOGIC & INTEGRATION SCRIPT -->
+    <script>
+        // Formatter configurations
+        const currencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 2
+        });
+
+        const dateFormatter = new Intl.DateTimeFormat('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+
+        // Application State
+        let customerId = 1; // Fallback default
+
+        // Initialize state on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check query parameter values (CASE INSENSITIVE FIX)
+            const urlParams = new URLSearchParams(window.location.search);
+            let foundId = null;
+            
+            // Loop through parameters to find 'customerid' ignoring casing
+            for (const [key, value] of urlParams.entries()) {
+                if (key.toLowerCase() === 'customerid' && !isNaN(parseInt(value))) {
+                    foundId = parseInt(value, 10);
+                    break;
+                }
+            }
+            
+            if (foundId !== null) {
+                customerId = foundId;
+            } else {
+                showToast('No Customer ID provided in URL. Defaulting to ID 1.', 'info', 'Example: ?customerId=3');
+            }
+
+            // Run initial fetch
+            initDashboard();
+        });
+
+        // Principal Dashboard Loader
+        async function initDashboard() {
+            document.getElementById('user-display-id').textContent = `Customer ID: #${customerId}`;
+            
+            // Set Loading Table state while fetching
+            setTableLoading();
+
+            try {
+                // Fetch strictly from live endpoint
+                const data = await fetchLiveApi(customerId);
+                
+                // Set Customer Name dynamically if available, otherwise use a premium placeholder
+                let customerName = "Verified Customer";
+                if (data.customerName) {
+                    customerName = data.customerName;
+                } else if (data.loanDetails && data.loanDetails.length > 0 && data.loanDetails[0].customerName) {
+                    customerName = data.loanDetails[0].customerName;
+                }
+                document.getElementById('user-display-name').textContent = customerName;
+
+                // Render UI widgets strictly based on API mapping
+                renderKPIs(data);
+                renderProgress(data);
+                renderTable(data);
+                
+               // document.getElementById('fetch-timestamp').textContent = `Last Synced: ${new Date().toLocaleTimeString()}`;
+                lucide.createIcons(); // Refresh vectors
+                
+            } catch (error) {
+                console.error("Dashboard Render Failed:", error);
+                
+                // Check if the error is due to KYC not approved / No loan records (404)
+                if (error.message.includes('status: 404') || error.message.includes('Not Found') || customerId === 4) {
+                    showKycNotApprovedState();
+                } else {
+                    showToast(`Connection Failed: ${error.message}`, 'error', 'Please ensure your backend server on port 8091 is running.');
+                    setTableErrorState(`Failed to load data for Customer #${customerId}. Ensure backend is running.`);
+                }
+            }
+        }
+
+        // Live Endpoint API Caller
+        async function fetchLiveApi(id) {
+            const targetUrl = `http://localhost:8091/user/${id}/reports/loans`;
+            
+            let response;
+            try {
+                response = await fetch(targetUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch (netErr) {
+                throw new Error("Local Network Disconnected. Ensure server is active on port 8091.");
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP status: ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        // Friendly UI representation when KYC is not approved or records are missing (404)
+        function showKycNotApprovedState() {
+            // Update Header Name
+            document.getElementById('user-display-name').textContent = "Pending Verification";
+            document.getElementById('user-display-id').textContent = `Customer ID: #${customerId}`;
+
+            // Reset KPI metrics gracefully to zero/info
+            document.getElementById('kpi-next-repayment').textContent = currencyFormatter.format(0);
+            document.getElementById('kpi-remaining-principal').textContent = currencyFormatter.format(0);
+            document.getElementById('kpi-active-loans').textContent = "0";
+            document.getElementById('kpi-next-duedate').textContent = "Verification Pending";
+
+            // Reset Progress bar
+            document.getElementById('progress-amount-paid').textContent = currencyFormatter.format(0);
+            document.getElementById('progress-amount-total').textContent = currencyFormatter.format(0);
+            document.getElementById('badge-percentage').textContent = "0%";
+            document.getElementById('progress-percentage-text').textContent = "KYC Verification Required";
+            document.getElementById('progress-bar-fill').style.width = '0%';
+
+            // Show friendly notification banner
+            showToast(
+                `KYC / Account Verification Required`, 
+                'info', 
+                `No active loan portfolios are available for Customer ID #${customerId}. Please ensure your identity verification is completed at your nearest partner branch.`
+            );
+
+            // Populate table with intuitive guide message
+            document.getElementById('loans-table-body').innerHTML = `
+                <tr>
+                    <td colspan="8" class="py-16 text-center">
+                        <div class="flex flex-col items-center justify-center max-w-md mx-auto gap-4">
+                            <div class="p-4 bg-amber-50 text-amber-600 rounded-full">
+                                <i data-lucide="user-check" class="w-8 h-8"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <h4 class="font-bold text-slate-800 text-base font-display">KYC Verification Needed</h4>
+                                <p class="text-slate-500 text-xs px-4">
+                                    Your profile is either awaiting KYC documents review, or no active loan accounts have been synchronized for Customer ID #${customerId} yet.
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="mailto:support@nexusfinance.com" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors">
+                                    Contact Support
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            lucide.createIcons();
+        }
+
+        // KPI Renderer - Validated with new API mappings
+        function renderKPIs(data) {
+            // 1. Next Payment Due
+            document.getElementById('kpi-next-repayment').textContent = currencyFormatter.format(data.nextRepaymentAmount || 0);
+            
+            // 2. Remaining Debt
+            document.getElementById('kpi-remaining-principal').textContent = currencyFormatter.format(data.remainingPrincipal || 0);
+            
+            // 3. Total Active Loans
+            document.getElementById('kpi-active-loans').textContent = data.totalActiveLoans || 0;
+
+            // Due Date Calculation
+            let earliestDate = "No Upcoming Payments";
+            if (data.loanDetails && data.loanDetails.length > 0) {
+                const validDateObjects = [];
+                
+                data.loanDetails.forEach(loan => {
+                    if (loan.nextDueDate && loan.loanStatus === 'APPROVED') {
+                        const parsedDate = new Date(loan.nextDueDate + 'T00:00:00');
+                        if (!isNaN(parsedDate.getTime())) {
+                            validDateObjects.push(parsedDate);
+                        }
+                    }
+                });
+                
+                if (validDateObjects.length > 0) {
+                    const minDate = new Date(Math.min(...validDateObjects));
+                    earliestDate = dateFormatter.format(minDate);
+                }
+            }
+            document.getElementById('kpi-next-duedate').textContent = earliestDate;
+        }
+
+        // Payoff Progress Render (Amount Paid vs Total Payable)
+        function renderProgress(data) {
+            const totalPayable = data.totalRepaymentAmount || 0;
+            const remainingToPay = data.remainingPrincipal || 0;
+            const amountPaid = Math.max(0, totalPayable - remainingToPay);
+            
+            document.getElementById('progress-amount-paid').textContent = currencyFormatter.format(amountPaid);
+            document.getElementById('progress-amount-total').textContent = currencyFormatter.format(totalPayable);
+
+            let ratio = 0;
+            if (totalPayable > 0) {
+                ratio = (amountPaid / totalPayable) * 100;
+            }
+
+            const cappedRatio = Math.min(ratio, 100).toFixed(1);
+            
+            document.getElementById('badge-percentage').textContent = `${cappedRatio}%`;
+            document.getElementById('progress-percentage-text').textContent = `${cappedRatio}% Completed`;
+            
+            const fillBar = document.getElementById('progress-bar-fill');
+            fillBar.style.width = '0%';
+            setTimeout(() => {
+                fillBar.style.width = `${cappedRatio}%`;
+            }, 150);
+        }
+
+        // Table List Renderer
+        function renderTable(data) {
+            const tbody = document.getElementById('loans-table-body');
+            const loans = data.loanDetails || [];
+            
+            document.getElementById('table-entries-badge').textContent = `${loans.length} Application${loans.length === 1 ? '' : 's'} Logged`;
+
+            if (loans.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-400">
+                            <i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
+                            <span class="font-medium">No registered loan accounts or historical records found.</span>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            
+            loans.forEach(loan => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/70 transition-colors group";
+
+                let statusClass = "bg-slate-100 text-slate-700 border-slate-200";
+                if (loan.loanStatus === 'APPROVED') {
+                    statusClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
+                } else if (loan.loanStatus === 'PENDING') {
+                    statusClass = "bg-amber-50 text-amber-700 border-amber-200/60";
+                } else if (loan.loanStatus === 'REJECTED') {
+                    statusClass = "bg-rose-50 text-rose-700 border-rose-200/60";
+                }
+
+                let displayDueDate = '—';
+                if (loan.nextDueDate) {
+                    const parsedDate = new Date(loan.nextDueDate + 'T00:00:00');
+                    if (!isNaN(parsedDate.getTime())) {
+                         displayDueDate = dateFormatter.format(parsedDate);
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-slate-800 font-display">#APP-${loan.applicationId}</div>
+                        <div class="text-xs text-slate-500 font-medium truncate max-w-xs mt-0.5" title="${loan.loanProduct}">
+                            ${loan.loanProduct}
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-right font-semibold text-slate-800 font-display">
+                        ${currencyFormatter.format(loan.totalAmount || 0)}
+                    </td>
+                    <td class="py-4 px-6 text-right font-semibold text-slate-800 font-display">
+                        ${currencyFormatter.format(loan.totalRepaymentAmount || 0)}
+                    </td>
+                    <td class="py-4 px-6 text-right text-amber-600 font-semibold font-display">
+                        ${currencyFormatter.format(loan.outstandingBalance || 0)}
+                    </td>
+                    <td class="py-4 px-6 text-center font-medium text-slate-600">
+                        ${loan.interestRate}% <span class="text-[10px] text-slate-400 block font-normal">fixed p.a.</span>
+                    </td>
+                    <td class="py-4 px-6 text-center text-slate-600 font-semibold">
+                        ${loan.loanTenure}
+                    </td>
+                    <td class="py-4 px-6 text-center text-slate-700 font-medium">
+                        ${displayDueDate}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusClass}">
+                            <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                            ${loan.loanStatus}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function setTableLoading() {
+            document.getElementById('loans-table-body').innerHTML = `
+                <tr>
+                    <td colspan="8" class="py-16 text-center">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <div class="h-8 w-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+                            <span class="text-slate-500 font-medium">Reading customer database records...</span>
+                        </div>
+                    </td>
+                </tr>`;
+        }
+
+        function setTableErrorState(message) {
+            document.getElementById('loans-table-body').innerHTML = `
+                <tr>
+                    <td colspan="8" class="py-12 text-center text-rose-500">
+                        <i data-lucide="alert-circle" class="w-10 h-10 mx-auto text-rose-300 mb-2"></i>
+                        <span class="font-medium">${message}</span>
+                    </td>
+                </tr>`;
+            lucide.createIcons();
+        }
+
+        // Toast feedback manager
+        function showToast(message, type = 'info', submessage = '') {
+            const toast = document.getElementById('status-toast');
+            const iconSpan = document.getElementById('status-toast-icon');
+            const msgP = document.getElementById('status-toast-msg');
+            const submsgP = document.getElementById('status-toast-submsg');
+            
+            msgP.textContent = message;
+            if (submessage) {
+                submsgP.textContent = submessage;
+                submsgP.classList.remove('hidden');
+            } else {
+                submsgP.textContent = '';
+                submsgP.classList.add('hidden');
+            }
+            
+            toast.className = "mb-6 p-4 rounded-xl shadow-lg border flex items-center justify-between transition-all duration-300";
+            
+            if (type === 'success') {
+                toast.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                iconSpan.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>';
+            } else if (type === 'error') {
+                toast.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+                iconSpan.innerHTML = '<i data-lucide="alert-octagon" class="w-5 h-5 text-rose-600"></i>';
+            } else if (type === 'info') {
+                toast.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-800');
+                iconSpan.innerHTML = '<i data-lucide="info" class="w-5 h-5 text-blue-600"></i>';
+            }
+            
+            toast.classList.remove('hidden');
+            lucide.createIcons();
+
+            // Auto dismiss success and info toasts after 6 seconds
+            if (type !== 'error') {
+                setTimeout(dismissToast, 6000);
+            }
+        }
+
+        function dismissToast() {
+            document.getElementById('status-toast').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

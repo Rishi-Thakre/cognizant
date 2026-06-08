@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repayment History | Bank Loan Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Custom Scrollbar for Timeline and Table */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Gradient Header matching the uploaded design */
+        .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Top Navigation / Header area -->
+    <div class="hero-gradient pt-8 pb-32 px-6 lg:px-12 text-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="bg-blue-900/50 text-blue-100 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider border border-blue-400/30">
+                        Customer Portal
+                    </span>
+                    <h1 class="text-3xl font-bold mt-4 flex items-center gap-3">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Repayment History
+                    </h1>
+                    <p class="text-blue-200 mt-2 text-sm md:text-base">
+                        Account Holder Customer ID: #<span id="header-customer-id" class="font-bold">...</span> 
+                        <span class="ml-2 px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs"><i class="fa-solid fa-check-circle mr-1"></i>Verified</span>
+                    </p>
+                </div>
+                <div class="hidden md:block">
+                    <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                        <i class="fa-solid fa-user text-xl text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container (Overlapping Header) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 -mt-20 w-full relative z-10 flex-1 pb-12">
+        
+        <!-- Error / Warning Banner -->
+        <div id="error-banner" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg shadow-sm mb-6">
+            <div class="flex items-start">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 mr-3"></i>
+                <div>
+                    <h3 class="text-amber-800 font-medium">Profile Incomplete or No Records Found</h3>
+                    <p id="error-message" class="text-amber-700 text-sm mt-1">We couldn't find any loan or repayment records for this Customer ID. Their KYC might not be approved yet, or they may not have any active loans.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+            <!-- Total Payments Expected -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Total EMI Schedule</p>
+                    <h3 class="text-2xl font-bold text-slate-800" id="kpi-total-payments">--</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-xl">
+                    <i class="fa-solid fa-list-ol"></i>
+                </div>
+            </div>
+
+            <!-- Completed Payments -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Successfully Paid</p>
+                    <h3 class="text-2xl font-bold text-emerald-600" id="kpi-completed-payments">--</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+            </div>
+
+            <!-- Latest Payment Date -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Last Payment On</p>
+                    <h3 class="text-lg font-bold text-slate-800" id="kpi-latest-date">--</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 text-xl">
+                    <i class="fa-regular fa-calendar-check"></i>
+                </div>
+            </div>
+
+            <!-- Next Payment Date -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Next EMI Due</p>
+                    <h3 class="text-lg font-bold text-orange-600" id="kpi-next-date">--</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 text-xl">
+                    <i class="fa-regular fa-calendar-plus"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Repayment Streak Timeline -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-8 overflow-hidden">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-amber-500"></i> Repayment Consistency Streak
+            </h2>
+            <p class="text-sm text-slate-500 mb-6">A visual timeline of your payment habits. Keep the streak green!</p>
+            
+            <div class="w-full overflow-x-auto custom-scrollbar pb-4">
+                <div id="streak-container" class="flex items-center min-w-max px-2">
+                    <!-- Streak nodes injected via JS -->
+                    <div class="text-slate-400 text-sm italic">Loading streak data...</div>
+                </div>
+            </div>
+            
+            <!-- Streak Legend -->
+            <div class="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> On Time</div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500"></span> Overdue</div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-200"></span> Upcoming</div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Payment Performance Over Time</h2>
+                    <p class="text-sm text-slate-500">Amount Due mapped by Scheduled Due Date</p>
+                </div>
+            </div>
+            <div class="relative h-72 w-full">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Paginated Table Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Detailed Repayment Log</h2>
+                    <p class="text-sm text-slate-500" id="table-entries-info">Loading entries...</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-50/80 text-slate-500 text-xs uppercase tracking-wider">
+                            <th class="py-4 px-6 font-semibold">Repayment ID</th>
+                            <th class="py-4 px-6 font-semibold">Loan Product</th>
+                            <th class="py-4 px-6 font-semibold">Due Date</th>
+                            <th class="py-4 px-6 font-semibold">Amount Due</th>
+                            <th class="py-4 px-6 font-semibold">Paid On</th>
+                            <th class="py-4 px-6 font-semibold text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="repayment-table-body" class="text-sm divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-500">
+                                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-blue-500"></i><br>
+                                Fetching payment history...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <button id="btn-prev" onclick="changePage(-1)" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <i class="fa-solid fa-angle-left mr-1"></i> Previous
+                </button>
+                
+                <span id="page-indicator" class="text-sm font-medium text-slate-600">
+                    Page 1 of 1
+                </span>
+                
+                <button id="btn-next" onclick="changePage(1)" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    Next <i class="fa-solid fa-angle-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- Formatter Utilities ---
+        const currencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        // --- Global State for Pagination & Data ---
+        let globalRepaymentData = [];
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let performanceChartInstance = null;
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+        });
+
+        function getCustomerIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // Case insensitive check for customerId
+            for (const [key, value] of urlParams.entries()) {
+                if (key.toLowerCase() === 'customerid') {
+                    return value;
+                }
+            }
+            return '1'; // Default if none provided
+        }
+
+        async function initDashboard() {
+            const customerId = getCustomerIdFromUrl();
+            document.getElementById('header-customer-id').textContent = customerId;
+
+            try {
+                // Fetch from real Spring Boot Endpoint
+                const response = await fetch(`http://localhost:8091/user/${customerId}/reports/repayments`);
+                
+                if (!response.ok) {
+                    if(response.status === 404) throw new Error("404_NOT_FOUND");
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // If the array is empty, treat it as a No Records Found scenario
+                if(!data.detailedRepaymentLog || data.detailedRepaymentLog.length === 0) {
+                    throw new Error("EMPTY_RECORDS");
+                }
+
+                // Hide error banner if success
+                document.getElementById('error-banner').classList.add('hidden');
+
+                // Process the data
+                globalRepaymentData = data.detailedRepaymentLog;
+                
+                renderKPIs(data);
+                renderStreak(globalRepaymentData);
+                renderChart(globalRepaymentData);
+                
+                // Initialize Table Pagination
+                currentPage = 1;
+                renderTablePage();
+
+            } catch (error) {
+                console.warn("API Error intercepted:", error.message);
+                
+                // Display graceful error state
+                document.getElementById('error-banner').classList.remove('hidden');
+                document.getElementById('repayment-table-body').innerHTML = `
+                    <tr><td colspan="6" class="py-8 text-center text-slate-500 italic">No historical records available to display.</td></tr>
+                `;
+                document.getElementById('streak-container').innerHTML = `<div class="text-slate-400 text-sm">No streak data available.</div>`;
+                
+                // If it fails because the server is completely down, let's load Mock Data for UI demonstration purposes
+                if(error.message !== "404_NOT_FOUND" && error.message !== "EMPTY_RECORDS") {
+                    console.log("Loading mock data for UI demonstration...");
+                    document.getElementById('error-message').innerHTML = "Could not connect to live server. Displaying <b>Simulated Mock Data</b> for preview.";
+                    loadMockData();
+                }
+            }
+        }
+
+        function renderKPIs(data) {
+            document.getElementById('kpi-total-payments').textContent = data.totalPaymentsMade || 0;
+            document.getElementById('kpi-completed-payments').textContent = data.numberOfCompletedPayments || 0;
+            
+            document.getElementById('kpi-latest-date').textContent = 
+                data.latestPaymentDate ? dateFormatter.format(new Date(data.latestPaymentDate)) : 'N/A';
+                
+            document.getElementById('kpi-next-date').textContent = 
+                data.nextPaymentDate ? dateFormatter.format(new Date(data.nextPaymentDate)) : 'N/A';
+        }
+
+        function renderStreak(logs) {
+            const container = document.getElementById('streak-container');
+            container.innerHTML = ''; // clear
+
+            if(logs.length === 0) return;
+
+            // Sort logs by Due Date ascending to create a chronological timeline
+            const sortedLogs = [...logs].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+            const today = new Date();
+
+            sortedLogs.forEach((log, index) => {
+                const dueDate = new Date(log.dueDate);
+                
+                // Determine Status Color
+                let nodeColorClass = 'bg-slate-200 text-transparent'; // Default Upcoming
+                let icon = '';
+                
+                if(log.paymentStatus === 'COMPLETED') {
+                    nodeColorClass = 'bg-emerald-500 text-white';
+                    icon = '<i class="fa-solid fa-check text-[10px]"></i>';
+                } else if (log.paymentStatus === 'PENDING') {
+                    if (dueDate < today) {
+                        nodeColorClass = 'bg-red-500 text-white shadow-[0_0_8px_rgba(239,68,68,0.6)]';
+                        icon = '<i class="fa-solid fa-exclamation text-[10px]"></i>';
+                    } else {
+                        nodeColorClass = 'bg-slate-200 text-transparent border-2 border-slate-300';
+                    }
+                }
+
+                // Create Node Wrapper
+                const nodeWrapper = document.createElement('div');
+                nodeWrapper.className = 'flex items-center group relative cursor-pointer';
+                
+                // The Node Dot
+                const dot = document.createElement('div');
+                dot.className = `w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 transition-transform group-hover:scale-125 ${nodeColorClass}`;
+                dot.innerHTML = icon;
+
+                // Tooltip
+                const tooltip = document.createElement('div');
+                tooltip.className = 'absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20 shadow-lg';
+                const formattedDue = dateFormatter.format(dueDate);
+                tooltip.innerHTML = `Due: ${formattedDue}<br>Status: ${log.paymentStatus}`;
+
+                nodeWrapper.appendChild(dot);
+                nodeWrapper.appendChild(tooltip);
+                
+                container.appendChild(nodeWrapper);
+
+                // Add connecting line (except for the last node)
+                if (index < sortedLogs.length - 1) {
+                    const line = document.createElement('div');
+                    line.className = 'w-6 md:w-10 h-1 bg-slate-200 shrink-0';
+                    // If both current and next are completed, make line green
+                    if(log.paymentStatus === 'COMPLETED' && sortedLogs[index+1].paymentStatus === 'COMPLETED') {
+                        line.className = 'w-6 md:w-10 h-1 bg-emerald-400 shrink-0';
+                    }
+                    container.appendChild(line);
+                }
+            });
+        }
+
+        function renderChart(logs) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            if(performanceChartInstance) {
+                performanceChartInstance.destroy();
+            }
+
+            // Sort chronologically
+            const sortedLogs = [...logs].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+            // Extract labels and data arrays
+            const labels = sortedLogs.map(log => {
+                const date = new Date(log.dueDate);
+                return `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
+            });
+
+            const completedData = sortedLogs.map(log => log.paymentStatus === 'COMPLETED' ? log.amountDue : 0);
+            const pendingData = sortedLogs.map(log => log.paymentStatus === 'PENDING' ? log.amountDue : 0);
+
+            performanceChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Completed Payments',
+                            data: completedData,
+                            backgroundColor: '#10b981', // emerald-500
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Pending / Due Amount',
+                            data: pendingData,
+                            backgroundColor: '#f1f5f9', // slate-100
+                            borderColor: '#cbd5e1',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { 
+                            stacked: true, 
+                            border: { dash: [4, 4] },
+                            ticks: {
+                                callback: function(value) { return '₹' + value; }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Pagination Logic ---
+        function renderTablePage() {
+            const tbody = document.getElementById('repayment-table-body');
+            const totalRows = globalRepaymentData.length;
+            const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+            
+            // Bounds check
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            // Extract specific page segment
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+            const pageData = globalRepaymentData.slice(startIndex, endIndex);
+
+            // Update UI Information
+            document.getElementById('table-entries-info').textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalRows} entries`;
+            document.getElementById('page-indicator').textContent = `Page ${currentPage} of ${totalPages}`;
+            
+            // Button states
+            document.getElementById('btn-prev').disabled = currentPage === 1;
+            document.getElementById('btn-next').disabled = currentPage === totalPages;
+
+            // Render Rows
+            tbody.innerHTML = '';
+            
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No repayment history found.</td></tr>`;
+                return;
+            }
+
+            pageData.forEach(row => {
+                const statusColor = row.paymentStatus === 'COMPLETED' 
+                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+                    : 'bg-orange-100 text-orange-700 border-orange-200';
+                    
+                const statusIcon = row.paymentStatus === 'COMPLETED' ? 'fa-check' : 'fa-clock';
+
+                const formattedAmt = currencyFormatter.format(row.amountDue);
+                const formattedDue = row.dueDate ? dateFormatter.format(new Date(row.dueDate)) : '-';
+                const formattedPaid = row.paymentDate ? dateFormatter.format(new Date(row.paymentDate)) : '-';
+                
+                const isOverdue = row.paymentStatus === 'PENDING' && new Date(row.dueDate) < new Date();
+                const overdueStyle = isOverdue ? 'text-red-500 font-medium' : '';
+                const displayStatus = isOverdue ? 'OVERDUE' : row.paymentStatus;
+                const activeStatusColor = isOverdue ? 'bg-red-100 text-red-700 border-red-200' : statusColor;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition-colors group';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-slate-600 font-medium">REP-${row.repaymentId.toString().padStart(5, '0')}</td>
+                    <td class="py-4 px-6 text-slate-800">${row.loanProduct}</td>
+                    <td class="py-4 px-6 text-slate-600 ${overdueStyle}">${formattedDue}</td>
+                    <td class="py-4 px-6 text-slate-800 font-semibold">${formattedAmt}</td>
+                    <td class="py-4 px-6 text-slate-500">${formattedPaid}</td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${activeStatusColor}">
+                            <i class="fa-solid ${isOverdue ? 'fa-exclamation-circle' : statusIcon} mr-1.5"></i> ${displayStatus}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.changePage = function(direction) {
+            currentPage += direction;
+            renderTablePage();
+        };
+
+
+        // --- Fallback Mock Data Generator (For Testing UI visually if server is down) ---
+        function loadMockData() {
+            const mockData = {
+                nextPaymentDate: "2026-08-17",
+                latestPaymentDate: "2026-05-17",
+                numberOfCompletedPayments: 12,
+                totalPaymentsMade: 72,
+                detailedRepaymentLog: []
+            };
+
+            const products = ["SBI Xpress Credit Personal Loan", "Home Loan Premium", "Auto Loan Scheme"];
+            const startDate = new Date(2025, 5, 17); // June 2025
+
+            for(let i=1; i<=25; i++) { // Generate 25 entries to demonstrate pagination (10, 10, 5)
+                const dueDate = new Date(startDate);
+                dueDate.setMonth(startDate.getMonth() + i);
+                
+                const isPast = dueDate < new Date("2026-06-02"); // simulated current date
+                const isCompleted = isPast && Math.random() > 0.1; // 10% chance of overdue if past
+
+                mockData.detailedRepaymentLog.push({
+                    repaymentId: 1000 + i,
+                    loanProduct: products[i % 3],
+                    dueDate: dueDate.toISOString().split('T')[0],
+                    amountDue: 5000 + (Math.random() * 2000),
+                    paymentDate: isCompleted ? dueDate.toISOString().split('T')[0] : null,
+                    paymentStatus: isCompleted ? "COMPLETED" : "PENDING"
+                });
+            }
+            
+            globalRepaymentData = mockData.detailedRepaymentLog;
+            renderKPIs(mockData);
+            renderStreak(globalRepaymentData);
+            renderChart(globalRepaymentData);
+            currentPage = 1;
+            renderTablePage();
+        }
+
+    </script>
+</body>
+</html>
